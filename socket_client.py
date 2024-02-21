@@ -3,9 +3,9 @@ import errno
 from threading import Thread
 import rsa
 import json
-from base64 import b64encode
+from base64 import b64encode, b64decode
 import jsonpickle
-
+import aes256encrypt, aes256decrypt
 flag=0
 HEADER_LENGTH = 10
 client_socket = None
@@ -44,6 +44,7 @@ def connect(ip, port, my_username, error_callback):
 
 # Sends a message to the server
 def send(message):
+    message = aes256encrypt.aes256encrypt(message)
     # Encode message to bytes, prepare header and convert to bytes, like for username above, then send
     message = message.encode('utf-8')
     message_header = f"{len(message):<{HEADER_LENGTH}}".encode('utf-8')
@@ -94,12 +95,15 @@ def listen(incoming_message_callback, error_callback):
                             creds.remove(i)
                     # print(creds)
                     continue
+                username = aes256decrypt.aes256decrypt(username)
+
                 # Now do the same for message (as we received username, we received whole message, there's no need to check if it has any length)
                 message_header = client_socket.recv(HEADER_LENGTH)
                 message_length = int(message_header.decode('utf-8').strip())
                 message = client_socket.recv(message_length).decode('utf-8')
                 # Print message
                 #here decryption will be done
+                message = aes256decrypt.aes256decrypt(message)
                 incoming_message_callback(username, message)
 
         except Exception as e:
