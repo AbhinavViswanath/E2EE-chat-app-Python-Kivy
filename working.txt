@@ -1,0 +1,3 @@
+aes 512?
+signal protocol?
+mode - cbc crypto block chaining
